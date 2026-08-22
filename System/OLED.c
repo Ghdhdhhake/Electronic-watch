@@ -5,6 +5,8 @@
 #define OLED_W_SCL(x)		GPIO_WriteBit(GPIOA, GPIO_Pin_8, (BitAction)(x))
 #define OLED_W_SDA(x)		GPIO_WriteBit(GPIOA, GPIO_Pin_9, (BitAction)(x))
 
+static uint8_t OLED_Buffer[8][128];
+
 /*引脚初始化*/
 void OLED_I2C_Init(void)
 {
@@ -121,6 +123,90 @@ void OLED_Clear(void)
 		{
 			OLED_WriteData(0x00);
 		}
+	}
+}
+
+void OLED_ClearBuffer(void)
+{
+	uint8_t page, column;
+	for (page = 0; page < 8; page++)
+	{
+		for (column = 0; column < 128; column++)
+		{
+			OLED_Buffer[page][column] = 0x00;
+		}
+	}
+}
+
+void OLED_Update(void)
+{
+	uint8_t page, column;
+	for (page = 0; page < 8; page++)
+	{
+		OLED_SetCursor(page, 0);
+		for (column = 0; column < 128; column++)
+		{
+			OLED_WriteData(OLED_Buffer[page][column]);
+		}
+	}
+}
+
+void OLED_DrawPixel(int16_t x, int16_t y, uint8_t color)
+{
+	if (x < 0 || x >= 128 || y < 0 || y >= 64) return;
+	if (color)
+	{
+		OLED_Buffer[y / 8][x] |= (uint8_t)(1 << (y % 8));
+	}
+	else
+	{
+		OLED_Buffer[y / 8][x] &= (uint8_t)~(1 << (y % 8));
+	}
+}
+
+void OLED_DrawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1)
+{
+	int16_t dx, sx, dy, sy, err, e2;
+	dx = (x0 < x1) ? (x1 - x0) : (x0 - x1);
+	sx = (x0 < x1) ? 1 : -1;
+	dy = (y0 < y1) ? (y0 - y1) : (y1 - y0);
+	sy = (y0 < y1) ? 1 : -1;
+	err = dx + dy;
+	while (1)
+	{
+		if (x0 >= 0 && x0 < 128 && y0 >= 0 && y0 < 64)
+			OLED_DrawPixel(x0, y0, 1);
+		if (x0 == x1 && y0 == y1) break;
+		e2 = 2 * err;
+		if (e2 >= dy) { err += dy; x0 += sx; }
+		if (e2 <= dx) { err += dx; y0 += sy; }
+	}
+}
+
+void OLED_DrawRect(uint8_t x, uint8_t y, uint8_t width, uint8_t height)
+{
+	OLED_DrawLine(x, y, x + width - 1, y);
+	OLED_DrawLine(x, y + height - 1, x + width - 1, y + height - 1);
+	OLED_DrawLine(x, y, x, y + height - 1);
+	OLED_DrawLine(x + width - 1, y, x + width - 1, y + height - 1);
+}
+
+void OLED_DrawCircle(int16_t x0, int16_t y0, int16_t radius)
+{
+	int16_t x = 0, y = radius, d = 3 - 2 * radius;
+	while (x <= y)
+	{
+		OLED_DrawPixel(x0 + x, y0 + y, 1);
+		OLED_DrawPixel(x0 - x, y0 + y, 1);
+		OLED_DrawPixel(x0 + x, y0 - y, 1);
+		OLED_DrawPixel(x0 - x, y0 - y, 1);
+		OLED_DrawPixel(x0 + y, y0 + x, 1);
+		OLED_DrawPixel(x0 - y, y0 + x, 1);
+		OLED_DrawPixel(x0 + y, y0 - x, 1);
+		OLED_DrawPixel(x0 - y, y0 - x, 1);
+		if (d < 0) d += 4 * x + 6;
+		else { d += 4 * (x - y) + 10; y--; }
+		x++;
 	}
 }
 
