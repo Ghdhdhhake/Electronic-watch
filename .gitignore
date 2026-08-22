@@ -1,0 +1,32 @@
+# Keil MDK build output
+/OBJ/
+/USER/Listings/
+
+# Keil-generated artifacts (in case output directories change)
+*.axf
+*.bin
+*.build_log.htm
+*.crf
+*.d
+*.dep
+*.hex
+*.lnp
+*.lst
+*.map
+*.o
+
+# Keil/uVision per-user state
+*.uvgui.*
+*.uvguix.*
+/USER/JLinkSettings.ini
+JLinkLog.txt
+
+# Temporary and backup files
+*.bak
+*.tmp
+*~
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
