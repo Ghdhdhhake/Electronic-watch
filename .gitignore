@@ -20,6 +20,7 @@
 *.uvguix.*
 /USER/JLinkSettings.ini
 JLinkLog.txt
+*.uvoptx
 
 # Temporary and backup files
 *.bak
